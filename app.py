@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, jsonify, session
+import sqlite3
 from datetime import datetime
 import qrcode
 import io
@@ -7,12 +8,35 @@ import base64
 app = Flask(__name__)
 app.secret_key = "smart_parking_secret"
 
+# ---------------- DATABASE ---------------- #
+conn = sqlite3.connect("parking.db", check_same_thread=False)
+cur = conn.cursor()
+
+cur.execute("""
+CREATE TABLE IF NOT EXISTS bookings(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT,
+    vehicle_number TEXT,
+    slot TEXT,
+    booking_time TEXT
+)
+""")
+
+cur.execute("""
+CREATE TABLE IF NOT EXISTS users(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT,
+    password TEXT
+)
+""")
+
+conn.commit()
+
 # ---------------- DATA ---------------- #
 slots = ["A1", "A2", "A3", "A4", "A5"]
 occupied = []
-bookings = []
 
-# ---------------- QR ---------------- #
+# ---------------- QR GENERATOR ---------------- #
 def generate_qr(data):
     qr = qrcode.make(data)
     buffer = io.BytesIO()
@@ -31,9 +55,35 @@ def home():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        session["user"] = request.form["username"]
-        return redirect("/")
+        username = request.form["username"]
+        password = request.form["password"]
+
+        cur.execute("SELECT * FROM users WHERE username=? AND password=?",
+                    (username, password))
+        user = cur.fetchone()
+
+        if user:
+            session["user"] = username
+            return redirect("/")
+        else:
+            return "❌ Invalid Login"
+
     return render_template("login.html")
+
+# ---------------- REGISTER ---------------- #
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        cur.execute("INSERT INTO users(username, password) VALUES (?, ?)",
+                    (username, password))
+        conn.commit()
+
+        return redirect("/login")
+
+    return render_template("register.html")
 
 # ---------------- LOGOUT ---------------- #
 @app.route("/logout")
@@ -48,8 +98,8 @@ def book():
     if "user" not in session:
         return redirect("/login")
 
-    name = request.form.get("name")
-    vehicle = request.form.get("vehicle")
+    name = request.form["name"]
+    vehicle = request.form["vehicle"]
 
     # find slot
     slot = None
@@ -59,21 +109,22 @@ def book():
             break
 
     if slot is None:
-        return "No Slots Available"
+        return "❌ No Slots Available"
 
     time = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
-    qr_data = f"{name}|{vehicle}|{slot}|{time}"
+    qr_data = f"{name}-{vehicle}-{slot}-{time}"
     qr_image = generate_qr(qr_data)
 
-    occupied.append(slot)
+    # save DB
+    cur.execute("""
+        INSERT INTO bookings(username, vehicle_number, slot, booking_time)
+        VALUES (?, ?, ?, ?)
+    """, (name, vehicle, slot, time))
 
-    bookings.append({
-        "name": name,
-        "vehicle": vehicle,
-        "slot": slot,
-        "time": time
-    })
+    conn.commit()
+
+    occupied.append(slot)
 
     return render_template(
         "qr.html",
@@ -90,7 +141,10 @@ def admin():
     if "user" not in session:
         return redirect("/login")
 
-    return render_template("admin.html", data=bookings)
+    cur.execute("SELECT * FROM bookings")
+    data = cur.fetchall()
+
+    return render_template("admin.html", data=data, total=len(data))
 
 # ---------------- HISTORY ---------------- #
 @app.route("/history")
@@ -98,19 +152,22 @@ def history():
     if "user" not in session:
         return redirect("/login")
 
-    return render_template("history.html", data=bookings)
+    cur.execute("SELECT * FROM bookings")
+    data = cur.fetchall()
 
-# ---------------- VACATE ---------------- #
-@app.route("/vacate/<slot>")
-def vacate(slot):
-    if slot in occupied:
-        occupied.remove(slot)
-    return redirect("/")
+    return render_template("history.html", data=data)
 
-# ---------------- API ---------------- #
+# ---------------- LOCATION API ---------------- #
 @app.route("/location", methods=["POST"])
 def location():
-    return jsonify({"status": "ok"})
+    return jsonify({"status": "received"})
+
+# ---------------- SCAN ---------------- #
+@app.route("/scan")
+def scan():
+    if "user" not in session:
+        return redirect("/login")
+    return render_template("scan.html")
 
 # ---------------- RUN ---------------- #
 if __name__ == "__main__":
