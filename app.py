@@ -3,6 +3,7 @@ from datetime import datetime
 import qrcode
 import io
 import base64
+import os
 
 app = Flask(__name__)
 app.secret_key = "smart_parking_secret"
