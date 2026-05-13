@@ -3,19 +3,16 @@ from datetime import datetime
 import qrcode
 import io
 import base64
-import os
 
 app = Flask(__name__)
 app.secret_key = "smart_parking_secret"
 
-# ---------------- DATA (NO DB FOR VERCEL) ---------------- #
-
+# ---------------- DATA ---------------- #
 slots = ["A1", "A2", "A3", "A4", "A5"]
 occupied = []
 bookings = []
 
 # ---------------- QR ---------------- #
-
 def generate_qr(data):
     qr = qrcode.make(data)
     buffer = io.BytesIO()
@@ -24,7 +21,6 @@ def generate_qr(data):
     return img_str
 
 # ---------------- HOME ---------------- #
-
 @app.route("/")
 def home():
     if "user" not in session:
@@ -32,7 +28,6 @@ def home():
     return render_template("home.html", slots=slots, occupied=occupied)
 
 # ---------------- LOGIN ---------------- #
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -40,8 +35,13 @@ def login():
         return redirect("/")
     return render_template("login.html")
 
-# ---------------- BOOK SLOT ---------------- #
+# ---------------- LOGOUT ---------------- #
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    return redirect("/login")
 
+# ---------------- BOOK SLOT ---------------- #
 @app.route("/book", methods=["POST"])
 def book():
 
@@ -51,6 +51,7 @@ def book():
     name = request.form.get("name")
     vehicle = request.form.get("vehicle")
 
+    # find slot
     slot = None
     for s in slots:
         if s not in occupied:
@@ -66,55 +67,51 @@ def book():
     qr_image = generate_qr(qr_data)
 
     occupied.append(slot)
-    bookings.append((name, vehicle, slot, time))
 
-    return f"""
-    <html>
-    <body style="background:#0f172a;color:white;text-align:center;font-family:Arial">
-        <h1>Booking Success</h1>
-        <h2>Name: {name}</h2>
-        <h2>Vehicle: {vehicle}</h2>
-        <h2>Slot: {slot}</h2>
-        <h2>Time: {time}</h2>
-        <img src="data:image/png;base64,{qr_image}">
-        <br><br>
-        <a href="/" style="color:white">Back Home</a>
-    </body>
-    </html>
-    """
+    bookings.append({
+        "name": name,
+        "vehicle": vehicle,
+        "slot": slot,
+        "time": time
+    })
 
-# ---------------- MAP ---------------- #
+    return render_template(
+        "qr.html",
+        name=name,
+        vehicle=vehicle,
+        slot=slot,
+        time=time,
+        qr=qr_image
+    )
 
-@app.route("/map")
-def map_page():
+# ---------------- ADMIN ---------------- #
+@app.route("/admin")
+def admin():
     if "user" not in session:
         return redirect("/login")
 
-    return render_template("map.html", data=bookings)
+    return render_template("admin.html", data=bookings)
 
 # ---------------- HISTORY ---------------- #
-
 @app.route("/history")
 def history():
+    if "user" not in session:
+        return redirect("/login")
+
     return render_template("history.html", data=bookings)
 
 # ---------------- VACATE ---------------- #
-
 @app.route("/vacate/<slot>")
 def vacate(slot):
-
     if slot in occupied:
         occupied.remove(slot)
-
     return redirect("/")
 
-# ---------------- LOCATION ---------------- #
-
+# ---------------- API ---------------- #
 @app.route("/location", methods=["POST"])
 def location():
     return jsonify({"status": "ok"})
 
-# ---------------- ENTRY POINT ---------------- #
-
+# ---------------- RUN ---------------- #
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5000, debug=True)

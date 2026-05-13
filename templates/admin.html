@@ -1,115 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Dashboard</title>
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <style>
-        body {
-            background: linear-gradient(to right, #74ebd5, #9face6);
-            font-family: Arial;
-        }
-
-        .card-box {
-            border-radius: 15px;
-            text-align: center;
-        }
-
-        .header {
-            font-weight: bold;
-            margin-top: 20px;
-        }
-
-        .stat {
-            font-size: 22px;
-            font-weight: bold;
-        }
-
-        .badge-slot {
-            background-color: #28a745;
-            padding: 5px 10px;
-            border-radius: 8px;
-            color: white;
-        }
-    </style>
+    <title>Admin Panel</title>
 </head>
 
-<body>
+<body style="font-family:Arial;text-align:center;background:#0f172a;color:white;">
 
-<div class="container mt-4">
+    <h1>🧑‍💼 Admin Panel</h1>
 
-    <h2 class="text-center header">🛠 Admin Dashboard</h2>
+    <h3>Total Bookings: {{ data|length }}</h3>
 
-    <!-- STATS CARDS -->
-    <div class="row mt-4">
+    <table border="1" style="margin:auto;color:white;border-collapse:collapse;width:80%;">
+        <tr>
+            <th>Name</th>
+            <th>Vehicle</th>
+            <th>Slot</th>
+            <th>Time</th>
+        </tr>
 
-        <div class="col-md-4">
-            <div class="card shadow p-3 card-box">
-                <h5>Total Bookings</h5>
-                <p class="stat">{{ total }}</p>
-            </div>
-        </div>
+        {% for b in data %}
+        <tr>
+            <td>{{ b.name }}</td>
+            <td>{{ b.vehicle }}</td>
+            <td>{{ b.slot }}</td>
+            <td>{{ b.time }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
-        <div class="col-md-4">
-            <div class="card shadow p-3 card-box">
-                <h5>System Status</h5>
-                <p class="stat text-success">Active</p>
-            </div>
-        </div>
+    <br><br>
 
-        <div class="col-md-4">
-            <div class="card shadow p-3 card-box">
-                <h5>Slots</h5>
-                <p class="stat">A1 - A5</p>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- TABLE -->
-    <div class="card shadow p-3 mt-4">
-
-        <h5 class="text-center">📊 All Bookings</h5>
-
-        <div class="table-responsive">
-
-            <table class="table table-striped text-center">
-
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>User</th>
-                        <th>Vehicle</th>
-                        <th>Slot</th>
-                        <th>Time</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                {% for r in data %}
-                    <tr>
-                        <td>{{ r[0] }}</td>
-                        <td>👤 {{ r[1] }}</td>
-                        <td>🚗 {{ r[2] }}</td>
-                        <td><span class="badge-slot">{{ r[3] }}</span></td>
-                        <td>⏰ {{ r[4] }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-    <div class="text-center mt-3">
-        <a href="/" class="btn btn-primary">🏠 Back Home</a>
-    </div>
-
-</div>
+    <a href="/" style="color:white;">⬅ Back Home</a>
 
 </body>
 </html>
