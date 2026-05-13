@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Parking Map</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+
+        body{
+            font-family:Arial;
+            background:#0f172a;
+            color:white;
+            text-align:center;
+        }
+
+        #map{
+            height:500px;
+            width:90%;
+            margin:auto;
+            border-radius:10px;
+        }
+
+        .box{
+            margin-top:20px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <h1>🗺 Smart Parking Map</h1>
+
+    <!-- MAP -->
+    <div id="map"></div>
+
+    <!-- BOOKING DATA -->
+    <div class="box">
+
+    {% for row in data %}
+
+        <p>
+            👤 {{ row[1] }}
+            |
+            🚗 {{ row[2] }}
+            |
+            🅿 {{ row[3] }}
+        </p>
+
+    {% endfor %}
+
+    </div>
+
+    <script>
+
+        // Create map ONLY ONCE
+        var map = L.map('map');
+
+        // Tiles
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                attribution:'OpenStreetMap'
+            }
+        ).addTo(map);
+
+        // Get live location
+        navigator.geolocation.getCurrentPosition(showPosition);
+
+        function showPosition(position) {
+
+            let lat = position.coords.latitude;
+            let lon = position.coords.longitude;
+
+            // Move map to live location
+            map.setView([lat, lon], 15);
+
+            // Marker
+            L.marker([lat, lon])
+                .addTo(map)
+                .bindPopup("📍 Your Live Location")
+                .openPopup();
+        }
+
+    </script>
+
+</body>
+
+</html>

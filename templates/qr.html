@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Ticket</title>
+</head>
+
+<body style="text-align:center;font-family:Arial;">
+
+    <h2>🚗 Parking Booked Successfully</h2>
+
+    <p><b>Name:</b> {{name}}</p>
+    <p><b>Vehicle:</b> {{vehicle}}</p>
+    <p><b>Slot:</b> {{slot}}</p>
+    <p><b>Time:</b> {{time}}</p>
+
+    <h3>Your QR Code</h3>
+
+    <img src="data:image/png;base64,{{qr}}" width="200">
+
+    <br><br>
+
+    <a href="/">Go Back</a>
+
+</body>
+</html>

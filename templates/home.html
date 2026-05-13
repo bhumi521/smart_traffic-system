@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Parking System</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#0f172a">
+
+    <style>
+        body {
+            background: #0f172a;   /* dark navy */
+            font-family: Arial;
+            color: white;
+        }
+
+        .header {
+            font-weight: bold;
+            margin-top: 20px;
+            color: #38bdf8;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 15px;
+            color: white;
+        }
+
+        .btn-custom {
+            margin: 5px;
+        }
+
+        #map {
+            height: 320px;
+            width: 100%;
+            border-radius: 12px;
+            border: 2px solid #334155;
+        }
+
+        input {
+            background: #0f172a !important;
+            color: white !important;
+            border: 1px solid #334155 !important;
+        }
+
+        input::placeholder {
+            color: #94a3b8;
+        }
+
+        .glow-btn {
+            box-shadow: 0 0 10px #38bdf8;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container mt-4">
+
+    <h2 class="text-center header">🚗 Smart Parking System</h2>
+
+    <!-- BOOKING -->
+    <div class="card shadow p-4 mt-3">
+
+        <form action="/book" method="POST">
+
+            <input type="text" name="name" class="form-control mb-2" placeholder="Enter Name" required>
+
+            <input type="text" name="vehicle" class="form-control mb-2" placeholder="Vehicle Number" required>
+
+            <button type="submit" class="btn btn-success w-100 glow-btn">Book Slot</button>
+
+        </form>
+
+    </div>
+    <h3 class="mt-4">Parking Slots</h3>
+
+{% for s in slots %}
+
+    {% if s in occupied %}
+
+        <div class="alert alert-danger">
+
+            🚗 {{ s }} Occupied
+
+            <a href="/vacate/{{s}}"
+               class="btn btn-sm btn-light">
+
+               Vacate
+
+            </a>
+
+        </div>
+
+    {% else %}
+
+        <div class="alert alert-success">
+
+            ✅ {{ s }} Vacant
+
+        </div>
+
+    {% endif %}
+
+{% endfor %}
+
+    <!-- BUTTONS -->
+    <div class="text-center mt-3">
+
+        <a href="/history" class="btn btn-outline-info btn-custom">📊 History</a>
+
+        <a href="/scan" class="btn btn-outline-success btn-custom">📱 Scan QR</a>
+
+        <a href="/map" class="btn btn-outline-primary btn-custom">🗺 Map</a>
+
+        <a href="/admin" class="btn btn-outline-danger btn-custom">🛠 Admin</a>
+        <button class="btn btn-warning" onclick="startLiveTracking()">
+📡 Start Live Tracking
+</button>
+
+    </div>
+
+    <!-- GPS -->
+    <div class="text-center mt-3">
+
+        <button class="btn btn-warning btn-custom glow-btn" onclick="getLocation()">📍 Find Nearest Parking</button>
+
+        <p id="loc"></p>
+        <p id="distance"></p>
+
+    </div>
+
+    <!-- MAP -->
+    <h4 class="mt-4 text-center">Parking Map</h4>
+    <div id="map" class="shadow"></div>
+
+</div>
+
+<script>
+    var map = L.map('map').setView([17.6599, 75.9064], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Smart Parking'
+    }).addTo(map);
+
+    L.marker([17.6599, 75.9064]).addTo(map)
+        .bindPopup("🚗 Smart Parking Area")
+        .openPopup();
+
+    function getLocation() {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    }
+
+    function showPosition(position) {
+
+        let userLat = position.coords.latitude;
+        let userLon = position.coords.longitude;
+
+        document.getElementById("loc").innerHTML =
+            "📍 You: " + userLat.toFixed(4) + ", " + userLon.toFixed(4);
+
+        map.setView([userLat, userLon], 15);
+
+        L.marker([userLat, userLon]).addTo(map)
+            .bindPopup("📍 You are here")
+            .openPopup();
+
+        let parkLat = 17.6599;
+        let parkLon = 75.9064;
+
+        let distance = getDistance(userLat, userLon, parkLat, parkLon);
+
+        document.getElementById("distance").innerHTML =
+            "🚗 Nearest Parking: " + distance.toFixed(2) + " KM";
+
+        fetch("/location", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({lat: userLat, lon: userLon})
+        });
+    }
+
+    function getDistance(lat1, lon1, lat2, lon2) {
+
+        let R = 6371;
+
+        let dLat = (lat2 - lat1) * Math.PI / 180;
+        let dLon = (lon2 - lon1) * Math.PI / 180;
+
+        let a =
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1*Math.PI/180) *
+            Math.cos(lat2*Math.PI/180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+
+        let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+        return R * c;
+
+          var map = L.map('map').setView([17.6599, 75.9064], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Smart Parking'
+    }).addTo(map);
+
+    L.marker([17.6599, 75.9064]).addTo(map)
+        .bindPopup("Smart Parking Area")
+        .openPopup();
+    }
+    function startLiveTracking() {
+    navigator.geolocation.watchPosition(showPosition);
+}
+
+function showPosition(position) {
+
+    let userLat = position.coords.latitude;
+    let userLon = position.coords.longitude;
+
+    document.getElementById("loc").innerHTML =
+        "📍 Live: " + userLat.toFixed(4) + ", " + userLon.toFixed(4);
+
+    map.setView([userLat, userLon], 15);
+
+    L.marker([userLat, userLon]).addTo(map)
+        .bindPopup("📍 You are here (Live)")
+        .openPopup();
+
+    fetch("/location", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({lat: userLat, lon: userLon})
+    });
+}
+</script>
+
+</body>
+</html>

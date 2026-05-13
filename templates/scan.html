@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Scan</title>
+</head>
+
+<body style="text-align:center;font-family:Arial;">
+
+<h2>📱 Scan QR Code</h2>
+
+<video id="video" width="300" autoplay></video>
+<p id="result"></p>
+
+<script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+
+<script>
+let video = document.getElementById("video");
+
+// camera start
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(function(stream){
+    video.srcObject = stream;
+});
+
+let canvas = document.createElement("canvas");
+let context = canvas.getContext("2d");
+
+function scanQR() {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    let imageData = context.getImageData(0,0,canvas.width,canvas.height);
+
+    let code = jsQR(imageData.data, canvas.width, canvas.height);
+
+    if(code){
+        document.getElementById("result").innerText = "✅ " + code.data;
+    }
+}
+
+setInterval(scanQR, 1000);
+</script>
+
+</body>
+</html>
