@@ -168,6 +168,12 @@ def scan():
     if "user" not in session:
         return redirect("/login")
     return render_template("scan.html")
+#---------------------MAP---------------
+@app.route("/map")
+def map_page():
+    cur.execute("SELECT * FROM bookings")
+    data = cur.fetchall()
+    return render_template("map.html", data=data)
 
 # ---------------- RUN ---------------- #
 if __name__ == "__main__":

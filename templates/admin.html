@@ -1,36 +1,88 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Panel</title>
+    <title>Admin Dashboard</title>
+
+    <style>
+        body{
+            font-family:Arial;
+            background:#0f172a;
+            color:white;
+            text-align:center;
+            margin:0;
+        }
+
+        h1{
+            padding:20px;
+        }
+
+        .card{
+            background:#1e293b;
+            padding:15px;
+            margin:20px auto;
+            width:90%;
+            border-radius:10px;
+            box-shadow:0 0 10px rgba(0,0,0,0.4);
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        th, td{
+            padding:12px;
+            border-bottom:1px solid #334155;
+        }
+
+        th{
+            background:#334155;
+        }
+
+        tr:hover{
+            background:#475569;
+        }
+
+        a{
+            color:#38bdf8;
+            text-decoration:none;
+        }
+    </style>
 </head>
 
-<body style="font-family:Arial;text-align:center;background:#0f172a;color:white;">
+<body>
 
-    <h1>🧑‍💼 Admin Panel</h1>
+<h1>🧑‍💼 Smart Parking Admin</h1>
 
-    <h3>Total Bookings: {{ data|length }}</h3>
+<p>Total Bookings: {{ total }}</p>
 
-    <table border="1" style="margin:auto;color:white;border-collapse:collapse;width:80%;">
-        <tr>
-            <th>Name</th>
-            <th>Vehicle</th>
-            <th>Slot</th>
-            <th>Time</th>
-        </tr>
+<div class="card">
 
-        {% for b in data %}
-        <tr>
-            <td>{{ b.name }}</td>
-            <td>{{ b.vehicle }}</td>
-            <td>{{ b.slot }}</td>
-            <td>{{ b.time }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Vehicle</th>
+        <th>Slot</th>
+        <th>Time</th>
+    </tr>
 
-    <br><br>
+    {% for b in data %}
+    <tr>
+        <td>{{ b[0] }}</td>
+        <td>{{ b[1] }}</td>
+        <td>{{ b[2] }}</td>
+        <td>{{ b[3] }}</td>
+        <td>{{ b[4] }}</td>
+    </tr>
+    {% endfor %}
 
-    <a href="/" style="color:white;">⬅ Back Home</a>
+</table>
+
+</div>
+
+<br>
+<a href="/">⬅ Back Home</a>
 
 </body>
 </html>

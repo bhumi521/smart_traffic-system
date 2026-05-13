@@ -1,19 +1,12 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
     <title>Parking Map</title>
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet"
-    href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
-    <!-- Leaflet JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
     <style>
-
         body{
             font-family:Arial;
             background:#0f172a;
@@ -25,74 +18,58 @@
             height:500px;
             width:90%;
             margin:auto;
-            border-radius:10px;
+            border-radius:12px;
+            box-shadow:0 0 15px rgba(0,0,0,0.5);
         }
 
         .box{
             margin-top:20px;
+            padding:10px;
         }
 
+        .item{
+            background:#1e293b;
+            margin:8px auto;
+            width:80%;
+            padding:10px;
+            border-radius:8px;
+        }
     </style>
-
 </head>
 
 <body>
 
-    <h1>🗺 Smart Parking Map</h1>
+<h1>🗺 Smart Parking Map</h1>
 
-    <!-- MAP -->
-    <div id="map"></div>
+<div id="map"></div>
 
-    <!-- BOOKING DATA -->
-    <div class="box">
+<div class="box">
 
-    {% for row in data %}
-
-        <p>
-            👤 {{ row[1] }}
-            |
-            🚗 {{ row[2] }}
-            |
-            🅿 {{ row[3] }}
-        </p>
-
-    {% endfor %}
-
+{% for row in data %}
+    <div class="item">
+        👤 {{ row[0] }} |
+        🚗 {{ row[1] }} |
+        🅿 {{ row[2] }} |
+        ⏰ {{ row[3] }}
     </div>
+{% endfor %}
 
-    <script>
+</div>
 
-        // Create map ONLY ONCE
-        var map = L.map('map');
+<script>
 
-        // Tiles
-        L.tileLayer(
-            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            {
-                attribution:'OpenStreetMap'
-            }
-        ).addTo(map);
+    var map = L.map('map').setView([17.6599, 75.9064], 13);
 
-        // Get live location
-        navigator.geolocation.getCurrentPosition(showPosition);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+        attribution:'OpenStreetMap'
+    }).addTo(map);
 
-        function showPosition(position) {
+    L.marker([17.6599, 75.9064])
+        .addTo(map)
+        .bindPopup("🚗 Parking Center")
+        .openPopup();
 
-            let lat = position.coords.latitude;
-            let lon = position.coords.longitude;
-
-            // Move map to live location
-            map.setView([lat, lon], 15);
-
-            // Marker
-            L.marker([lat, lon])
-                .addTo(map)
-                .bindPopup("📍 Your Live Location")
-                .openPopup();
-        }
-
-    </script>
+</script>
 
 </body>
-
 </html>
